@@ -1,0 +1,1 @@
+# quarkus-pagseguro-postgresql-sqs
