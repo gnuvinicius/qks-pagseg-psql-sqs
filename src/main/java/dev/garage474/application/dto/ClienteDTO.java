@@ -9,7 +9,7 @@ import lombok.Getter;
 @Builder
 public class ClienteDTO {
 
-    private int id;
+    private Integer id;
     private String nome;
     private Endereco endereco;
     private String telefone;
@@ -17,6 +17,7 @@ public class ClienteDTO {
 
     public static ClienteDTO fromEntity(Cliente cliente) {
         return ClienteDTO.builder()
+                .id(null)
                 .nome(cliente.getNome())
                 .endereco(cliente.getEndereco())
                 .telefone(cliente.getTelefone())

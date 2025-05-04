@@ -1,11 +1,12 @@
 package dev.garage474.domain.venda;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import dev.garage474.domain.cadastro.Cliente;
+import dev.garage474.domain.cadastro.Produto;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -17,11 +18,12 @@ import lombok.NoArgsConstructor;
 public class Venda extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "venda_seq")
+    @SequenceGenerator(name = "venda_seq", sequenceName = "venda_seq", allocationSize = 1, initialValue = 1)
     private int id;
 
     @Column(name = "valor_total")
-    private double valorTotal;
+    private BigDecimal valorTotal;
 
     @Column(name = "data_venda")
     private LocalDateTime dataVenda;
@@ -44,17 +46,22 @@ public class Venda extends PanacheEntityBase {
         this.cliente = cliente;
         this.dataVenda = LocalDateTime.now();
         this.formaPagamento = formaPagamento;
+        this.valorTotal = BigDecimal.ZERO;
         this.status = EnumStatus.EM_ANDAMENTO;
     }
 
-    public void addItem(String produtoId, int quantidade) {
-        ItemVenda itemVenda = new ItemVenda(this, produtoId, quantidade);
-        itemVenda.persist();
+    public void addItem(Produto produto, int quantidade) {
+        var item = new ItemVenda(this, produto, quantidade);
+        item.persist();
+        this.itensVenda.add(item);
+    }
 
-        this.itensVenda.add(itemVenda);
-        this.valorTotal += Objects.requireNonNull(this.itensVenda.stream()
-                        .reduce(null, (a, b) -> a == null ? b : a))
-                .getPrecoTotal();
+    public void setValorTotal(BigDecimal valorTotal) {
+        this.valorTotal = valorTotal;
+    }
+
+    public void atualizaStatus(EnumStatus status) {
+        this.status = status;
     }
 
 }

@@ -1,5 +1,7 @@
 package dev.garage474.application.dto;
 
+import java.math.BigDecimal;
+
 import dev.garage474.domain.cadastro.Produto;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +12,7 @@ public class ProdutoDTO {
     private int id;
     private String nome;
     private String descricao;
-    private double preco;
+    private BigDecimal preco;
     private int quantidade;
 
     public static ProdutoDTO fromEntity(Produto produto) {

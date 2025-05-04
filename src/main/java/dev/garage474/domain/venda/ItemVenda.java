@@ -1,5 +1,7 @@
 package dev.garage474.domain.venda;
 
+import java.math.BigDecimal;
+
 import dev.garage474.domain.cadastro.Produto;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
@@ -24,23 +26,21 @@ public class ItemVenda extends PanacheEntityBase {
   private int quantidade;
 
   @Column(name = "preco_unitario")
-  private double precoUnitario;
+  private BigDecimal precoUnitario;
 
   @Column(name = "preco_total")
-  private double precoTotal;
+  private BigDecimal precoTotal;
   
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "venda_id")
   private Venda venda;
 
-  public ItemVenda(Venda venda, String produtoId, int quantidade) {
+  public ItemVenda(Venda venda, Produto produto, int quantidade) {
     this.venda = venda;
-    this.produto = Produto.findByIdOptional(produtoId)
-        .map(Produto.class::cast)
-        .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado"));
+    this.produto = produto;
     this.quantidade = quantidade;
     this.precoUnitario = produto.getPreco();
-    this.precoTotal = precoUnitario * quantidade;
+    this.precoTotal = precoUnitario.multiply(new BigDecimal(quantidade));
   }
 
 }
