@@ -1,7 +1,6 @@
 package dev.garage474.mspagamento.adapter.dto;
 
 import dev.garage474.mspagamento.domain.cadastro.Cliente;
-import dev.garage474.mspagamento.domain.cadastro.Endereco;
 import lombok.Builder;
 import lombok.Getter;
 

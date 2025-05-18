@@ -1,16 +1,15 @@
 package dev.garage474.mspagamento.domain.venda;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 import dev.garage474.mspagamento.domain.cadastro.Cliente;
-import dev.garage474.mspagamento.domain.cadastro.Produto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter

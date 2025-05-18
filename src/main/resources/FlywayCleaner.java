@@ -1,11 +1,11 @@
 package dev.garage474.mspagamento.config;
 
-import java.util.logging.Logger;
-
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import java.util.logging.Logger;
 
 @Component
 @Profile("dev")
@@ -16,6 +16,7 @@ public class FlywayCleaner implements CommandLineRunner {
   private final Logger logger = Logger.getLogger(FlywayCleaner.class.getName());
 
   public FlywayCleaner(Flyway flyway) {
+    this.enabled = false;
     this.flyway = flyway;
   }
 
