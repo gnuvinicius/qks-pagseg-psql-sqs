@@ -2,11 +2,9 @@ package dev.garage474.mspagamento.adapter.controller;
 
 import java.util.List;
 
+import dev.garage474.mspagamento.adapter.dto.ClienteDTO;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import dev.garage474.mspagamento.adapter.dto.RealizaVendaRequestDTO;
 import dev.garage474.mspagamento.adapter.dto.VendaDTO;
@@ -22,10 +20,10 @@ import dev.garage474.mspagamento.domain.venda.Venda;
 @RequestMapping("/loja")
 public class LojaResource {
 
-    private EfetuaVendaUseCase efetuaVendaUseCase;
-    private ProdutoRepository produtoRepository;
-    private ClienteRepository clienteRepository;
-    private VendaRepository vendaRepository;
+    private final EfetuaVendaUseCase efetuaVendaUseCase;
+    private final ProdutoRepository produtoRepository;
+    private final ClienteRepository clienteRepository;
+    private final VendaRepository vendaRepository;
 
     LojaResource(EfetuaVendaUseCase efetuaVendaUseCase,
             ProdutoRepository produtoRepository,
@@ -45,7 +43,8 @@ public class LojaResource {
 
     @GetMapping("/clientes")
     public ResponseEntity<?> getClientes() {
-        List<Cliente> result = clienteRepository.listarClientes();
+        List<Cliente> clientes = clienteRepository.listarClientes();
+        var result = clientes.stream().map(ClienteDTO::fromEntity).toList();
         return ResponseEntity.ok(result);
     }
 
@@ -57,7 +56,7 @@ public class LojaResource {
     }
 
     @PostMapping("/realiza-venda")
-    public ResponseEntity<?> realizaVenda(RealizaVendaRequestDTO request) {
+    public ResponseEntity<?> realizaVenda(@RequestBody RealizaVendaRequestDTO request) {
 
         try {
             efetuaVendaUseCase.setRequest(request);

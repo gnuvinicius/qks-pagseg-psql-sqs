@@ -10,6 +10,7 @@ import dev.garage474.mspagamento.domain.cadastro.Produto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -22,6 +23,7 @@ public class Venda {
     @SequenceGenerator(name = "venda_seq", sequenceName = "venda_seq", allocationSize = 1, initialValue = 1)
     private int id;
 
+    @Setter
     @Column(name = "valor_total")
     private BigDecimal valorTotal;
 
@@ -49,14 +51,10 @@ public class Venda {
         this.valorTotal = BigDecimal.ZERO;
     }
 
-    public void addItem(Produto produto, int quantidade) {
-        var item = new ItemVenda(this, produto, quantidade);
+    public void addItem(ItemVenda item) {
+//        var item = new ItemVenda(this, produto, quantidade);
         // item.persist();
         this.itensVenda.add(item);
-    }
-
-    public void setValorTotal(BigDecimal valorTotal) {
-        this.valorTotal = valorTotal;
     }
 
 }

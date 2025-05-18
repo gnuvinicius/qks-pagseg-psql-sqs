@@ -41,11 +41,9 @@ public class EfetuaVendaUseCase extends AbastractUseCase {
     @Override
     @Transactional
     public void executa() {
-
         this.cliente = clienteRepository.findById(request.getClienteId());
-
         this.venda = new Venda(this.cliente, request.getFormaPagamento());
-        this.vendaRepository.persist(venda);
+        this.vendaRepository.salvaVenda(venda);
         salvaItemsVendaSelecaoCliente();
         finalizaVenda();
     }
@@ -62,13 +60,16 @@ public class EfetuaVendaUseCase extends AbastractUseCase {
                 .build();
 
         this.vendaRepository.salvaStatusVenda(historico);
-        this.vendaRepository.persist(this.venda);
+        this.vendaRepository.salvaVenda(this.venda);
     }
 
     private void salvaItemsVendaSelecaoCliente() {
         for (ItemVendaRequestDTO item : request.getItems()) {
             Produto produto = produtoRepository.findById(item.getProdutoId());
-            this.venda.addItem(produto, item.getQuantidade());
+
+            var itemVenda = new ItemVenda(this.venda, produto, item.getQuantidade());
+            vendaRepository.salvaItemVenda(itemVenda);
+            this.venda.addItem(itemVenda);
         }
     }
 

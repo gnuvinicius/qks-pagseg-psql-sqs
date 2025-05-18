@@ -11,15 +11,15 @@ public class ClienteDTO {
 
     private Integer id;
     private String nome;
-    private Endereco endereco;
+    private String endereco;
     private String telefone;
     private String email;
 
     public static ClienteDTO fromEntity(Cliente cliente) {
         return ClienteDTO.builder()
-                .id(null)
+                .id(cliente.getId())
                 .nome(cliente.getNome())
-                .endereco(cliente.getEndereco())
+                .endereco(cliente.getEndereco().toString())
                 .telefone(cliente.getTelefone())
                 .email(cliente.getEmail())
                 .build();
