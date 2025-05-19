@@ -6,7 +6,7 @@ package dev.garage474.mspagamento.application.usecase;
 public abstract class AbastractUseCase {
 
   /**
-   * * Método que executa a lógica de negócio do caso de uso.
+   * * Metodo que executa a lógica de negócio do caso de uso.
    * 
    */
   protected abstract void executa();

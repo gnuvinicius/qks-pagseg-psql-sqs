@@ -3,6 +3,9 @@ package dev.garage474.mspagamento.application.usecase;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.garage474.mspagamento.application.ports.output.QueueGateway;
 import org.springframework.stereotype.Component;
 
 import dev.garage474.mspagamento.adapter.dto.ItemVendaRequestDTO;
@@ -17,39 +20,62 @@ import dev.garage474.mspagamento.domain.venda.HistoricoStatusVenda;
 import dev.garage474.mspagamento.domain.venda.ItemVenda;
 import dev.garage474.mspagamento.domain.venda.Venda;
 import jakarta.transaction.Transactional;
-import lombok.Setter;
 
-@Setter
 @Component
 public class EfetuaVendaUseCase extends AbastractUseCase {
-    private ClienteRepository clienteRepository;
-    private ProdutoRepository produtoRepository;
-    private VendaRepository vendaRepository;
 
+    public static final String REQUEST_NOT_NULL = "Request não pode ser nulo";
+    private final ClienteRepository clienteRepository;
+    private final ProdutoRepository produtoRepository;
+    private final VendaRepository vendaRepository;
+    private final QueueGateway queueGateway;
     private RealizaVendaRequestDTO request;
-    private Venda venda;
-    private Cliente cliente;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+
+    public void setRequest(RealizaVendaRequestDTO request) {
+        if (request == null) {
+            throw new IllegalArgumentException(REQUEST_NOT_NULL);
+        }
+        this.request = request;
+    }
 
     public EfetuaVendaUseCase(ClienteRepository clienteRepository,
-            VendaRepository vendaRepository,
-            ProdutoRepository produtoRepository) {
+                              VendaRepository vendaRepository,
+                              QueueGateway queueGateway,
+                              ProdutoRepository produtoRepository) {
         this.clienteRepository = clienteRepository;
         this.vendaRepository = vendaRepository;
+        this.queueGateway = queueGateway;
         this.produtoRepository = produtoRepository;
     }
 
     @Override
     @Transactional
     public void executa() {
-        this.cliente = clienteRepository.findById(request.getClienteId());
-        this.venda = new Venda(this.cliente, request.getFormaPagamento());
-        this.vendaRepository.salvaVenda(venda);
-        salvaItemsVendaSelecaoCliente();
-        finalizaVenda();
+        try {
+            Cliente cliente = clienteRepository.findById(request.getClienteId());
+            Venda venda = new Venda(cliente, request.getFormaPagamento());
+            this.vendaRepository.salvaVenda(venda);
+            salvaItemsVendaSelecaoCliente(venda);
+            finalizaVenda(venda);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Erro ao realizar a venda: " + e.getMessage());
+        }
     }
 
-    private void finalizaVenda() {
-        this.venda.setValorTotal(this.venda.getItensVenda().stream()
+    private void salvaItemsVendaSelecaoCliente(Venda venda) {
+        for (ItemVendaRequestDTO item : request.getItems()) {
+            Produto produto = produtoRepository.findById(item.getProdutoId());
+
+            var itemVenda = new ItemVenda(venda, produto, item.getQuantidade());
+            vendaRepository.salvaItemVenda(itemVenda);
+            venda.addItem(itemVenda);
+        }
+    }
+
+    private void finalizaVenda(Venda venda) throws JsonProcessingException {
+        venda.setValorTotal(venda.getItensVenda().stream()
                 .map(ItemVenda::getPrecoTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
 
@@ -60,17 +86,11 @@ public class EfetuaVendaUseCase extends AbastractUseCase {
                 .build();
 
         this.vendaRepository.salvaStatusVenda(historico);
-        this.vendaRepository.salvaVenda(this.venda);
-    }
+        this.vendaRepository.salvaVenda(venda);
 
-    private void salvaItemsVendaSelecaoCliente() {
-        for (ItemVendaRequestDTO item : request.getItems()) {
-            Produto produto = produtoRepository.findById(item.getProdutoId());
+        String vendaJson = objectMapper.writeValueAsString(venda);
 
-            var itemVenda = new ItemVenda(this.venda, produto, item.getQuantidade());
-            vendaRepository.salvaItemVenda(itemVenda);
-            this.venda.addItem(itemVenda);
-        }
+        queueGateway.sendMessage(vendaJson);
     }
 
 }
