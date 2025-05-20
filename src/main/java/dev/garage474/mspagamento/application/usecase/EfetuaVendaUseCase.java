@@ -90,7 +90,7 @@ public class EfetuaVendaUseCase extends AbastractUseCase {
 
         String vendaJson = objectMapper.writeValueAsString(venda);
 
-        queueGateway.sendMessage(vendaJson);
+        queueGateway.enviarMensagem(vendaJson);
     }
 
 }
