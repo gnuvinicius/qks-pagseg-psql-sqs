@@ -5,11 +5,10 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.garage474.mspagamento.adapter.dto.*;
 import dev.garage474.mspagamento.application.ports.output.QueueGateway;
 import org.springframework.stereotype.Component;
 
-import dev.garage474.mspagamento.adapter.dto.ItemVendaRequestDTO;
-import dev.garage474.mspagamento.adapter.dto.RealizaVendaRequestDTO;
 import dev.garage474.mspagamento.application.ports.output.ClienteRepository;
 import dev.garage474.mspagamento.application.ports.output.ProdutoRepository;
 import dev.garage474.mspagamento.application.ports.output.VendaRepository;
@@ -22,23 +21,13 @@ import dev.garage474.mspagamento.domain.venda.Venda;
 import jakarta.transaction.Transactional;
 
 @Component
-public class EfetuaVendaUseCase extends AbastractUseCase {
+public class EfetuaVendaUseCase extends AbastractUseCase<RealizaVendaRequestDTO> {
 
-    public static final String REQUEST_NOT_NULL = "Request não pode ser nulo";
     private final ClienteRepository clienteRepository;
     private final ProdutoRepository produtoRepository;
     private final VendaRepository vendaRepository;
     private final QueueGateway queueGateway;
-    private RealizaVendaRequestDTO request;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-
-    public void setRequest(RealizaVendaRequestDTO request) {
-        if (request == null) {
-            throw new IllegalArgumentException(REQUEST_NOT_NULL);
-        }
-        this.request = request;
-    }
 
     public EfetuaVendaUseCase(ClienteRepository clienteRepository,
                               VendaRepository vendaRepository,
@@ -88,8 +77,11 @@ public class EfetuaVendaUseCase extends AbastractUseCase {
         this.vendaRepository.salvaStatusVenda(historico);
         this.vendaRepository.salvaVenda(venda);
 
-        String vendaJson = objectMapper.writeValueAsString(venda);
+        enviaParaFilaProcessamento(venda);
+    }
 
+    private void enviaParaFilaProcessamento(Venda venda) throws JsonProcessingException {
+        String vendaJson = objectMapper.writeValueAsString(VendaDTO.fromEntity(venda));
         queueGateway.enviarMensagem(vendaJson);
     }
 

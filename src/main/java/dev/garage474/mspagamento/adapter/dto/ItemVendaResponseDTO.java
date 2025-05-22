@@ -1,6 +1,7 @@
 package dev.garage474.mspagamento.adapter.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import dev.garage474.mspagamento.domain.venda.ItemVenda;
 import lombok.Builder;
@@ -21,4 +22,9 @@ public class ItemVendaResponseDTO {
                 .build();
     }
 
+    public static List<ItemVendaResponseDTO> listFromEntity(List<ItemVenda> itensVenda) {
+        return itensVenda.stream()
+                .map(ItemVendaResponseDTO::fromEntity)
+                .toList();
+    }
 }
